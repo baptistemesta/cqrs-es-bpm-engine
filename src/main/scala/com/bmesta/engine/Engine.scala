@@ -1,6 +1,6 @@
 package com.bmesta.engine
 
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props, Terminated}
+import akka.actor.{ActorSystem, Props}
 
 /**
   * @author Baptiste Mesta.
@@ -12,11 +12,3 @@ object Engine extends App {
   system.actorOf(Props(classOf[Terminator], a), "terminator")
 }
 
-class Terminator(ref: ActorRef) extends Actor with ActorLogging {
-  context watch ref
-  def receive = {
-    case Terminated(_) =>
-      log.info("{} has terminated, shutting down system", ref.path)
-      context.system.terminate()
-  }
-}
