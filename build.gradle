@@ -1,28 +1,18 @@
-buildscript {
-    ext.kotlin_version = '1.1.0'
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
 plugins {
     id "com.diffplug.gradle.spotless" version "3.0.0"
     id 'com.github.ben-manes.versions' version '0.14.0'
     id 'ch.netzwerg.release' version '1.2.4'
-    id 'nebula.kotlin' version '1.1.0'
 }
 
 apply plugin: 'java'
+apply plugin: 'scala'
 apply plugin: 'idea'
-apply plugin: 'maven-publish'
 apply plugin: 'application'
 
 group 'com.bmesta.engine'
 
 
-mainClassName = 'com.bmesta.engine.EngineKt'
+mainClassName = 'com.bmesta.engine.Engine'
 
 repositories {
     mavenLocal()
@@ -33,33 +23,21 @@ repositories {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    testCompile 'junit:junit:4.11'
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+    compile group: 'com.typesafe.akka', name: 'akka-actor_2.11', version: '2.4.17'
+    compile group: 'org.scala-lang', name: 'scala-library', version: '2.11.8'
     testCompile 'junit:junit:4.12'
+    testCompile 'org.scalatest:scalatest_2.11:3.0.0'
     testCompile 'org.mock-server:mockserver-netty:3.10.4'
 }
 
-spotless {
-    java {
-        licenseHeaderFile rootProject.file('NOTICE')
-        trimTrailingWhitespace()
-        endWithNewline()
-    }
-}
+//spotless {
+//    scala {
+//        licenseHeaderFile rootProject.file('NOTICE')
+//        trimTrailingWhitespace()
+//        endWithNewline()
+//    }
+//}
 
 release {
     tagPrefix = ''
-}
-
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
-    repositories {
-        mavenLocal()
-    }
 }
