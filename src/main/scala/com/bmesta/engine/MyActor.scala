@@ -1,25 +1,42 @@
 package com.bmesta.engine
 
-import akka.actor.{Actor, ActorLogging}
+import akka.persistence.{PersistentActor, SnapshotOffer}
 
-object MyActor {
 
-  case class Greeting(from: String)
+case class Cmd(data: String)
 
-  case object Goodbye
+case class Evt(data: String)
 
+case class ExampleState(events: List[String] = Nil) {
+  def updated(evt: Evt): ExampleState = copy(evt.data :: events)
+
+  def size: Int = events.length
+
+  override def toString: String = events.reverse.toString
 }
 
-class MyActor extends Actor with ActorLogging {
+class ExamplePersistentActor extends PersistentActor {
+  override def persistenceId = "sample-id-1"
 
-  import MyActor._
+  var state = ExampleState()
 
-  def receive = {
-    case Greeting(greeter) => log.info(s"I was greeted by $greeter.")
-    case Goodbye => {
-      log.info("Someone said goodbye to me.")
-      context.stop(self)
-    }
+  def updateState(event: Evt): Unit =
+    state = state.updated(event)
+
+  def numEvents: Int =
+    state.size
+
+  val receiveRecover: Receive = {
+    case evt: Evt => println(s"recover $evt"); updateState(evt)
+    case SnapshotOffer(_, snapshot: ExampleState) => state = snapshot
+  }
+
+  val receiveCommand: Receive = {
+    case Cmd(data) =>
+      println(s"execute command $data")
+      persist(Evt(s"$data"))(updateState)
+    case "snap" => saveSnapshot(state)
+    case "print" => println(state)
   }
 
 }
