@@ -26,5 +26,6 @@ build
 **/bin
 *.tmp
 *~
+out
 
 .vscode

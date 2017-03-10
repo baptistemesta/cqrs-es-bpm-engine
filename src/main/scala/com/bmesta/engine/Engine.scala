@@ -1,22 +1,34 @@
 package com.bmesta.engine
 
+import scala.concurrent.duration._
 import akka.actor.{ActorSystem, Props}
+import akka.http.scaladsl.Http
+import akka.stream.ActorMaterializer
+import akka.util.Timeout
+import com.typesafe.config.ConfigFactory
 
 /**
   * @author Baptiste Mesta.
   */
-object Engine extends App {
+object Engine extends App with RestInterface {
 
-  val system = ActorSystem("Hello")
+  val config = ConfigFactory.load()
+  val host = config.getString("http.host")
+  val port = config.getInt("http.port")
+
+  implicit val system = ActorSystem("Engine")
+  implicit val materializer = ActorMaterializer()
+  implicit val executionContext = system.dispatcher
+  implicit val timeout = Timeout(10 seconds)
+
   val a = system.actorOf(Props[ExamplePersistentActor], "helloWorld")
-  system.actorOf(Props(classOf[Terminator], a), "terminator")
-  println("before")
-  a ! "print"
-  println("cmd john")
-  a ! Cmd("john")
-  a ! "print"
-  println("cmd john")
-  a ! Cmd("jack")
-  a ! "print"
+
+  val api = routes
+
+  Http().bindAndHandle(handler = api, interface = host, port = port) map { binding =>
+    println(s"REST interface bound to ${binding.localAddress}") } recover { case ex =>
+    println(s"REST interface could not bind to $host:$port", ex.getMessage)
+  }
+
 }
 
