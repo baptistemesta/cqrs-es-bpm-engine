@@ -1,0 +1,59 @@
+plugins {
+    id "com.diffplug.gradle.spotless" version "3.0.0"
+    id 'com.github.ben-manes.versions' version '0.14.0'
+    id 'ch.netzwerg.release' version '1.2.4'
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'maven-publish'
+
+group 'com.bmesta.engine'
+
+repositories {
+    mavenLocal()
+    maven { url 'http://repositories.rd.lan/maven/releases/' }
+    maven { url 'http://repositories.rd.lan/maven/snapshots/' }
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    testCompile 'io.projectreactor.addons:reactor-test:3.0.5.RELEASE'
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mock-server:mockserver-netty:3.10.4'
+}
+
+spotless {
+    java {
+        licenseHeaderFile rootProject.file('LICENSE')
+        importOrder(['java', 'javax', 'com', 'org'])
+        eclipseFormatFile rootProject.file('config/formatter.xml')
+        trimTrailingWhitespace()
+        endWithNewline()
+
+        custom 'Lambda fix', { it.replace('} )', '})').replace('} ,', '},') }
+    }
+}
+
+release {
+    tagPrefix = ''
+}
+
+task copyRuntimeLibs(type: Copy) {
+    into "build/libs"
+    from configurations.runtime
+}
+build.dependsOn(copyRuntimeLibs)
+
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}
