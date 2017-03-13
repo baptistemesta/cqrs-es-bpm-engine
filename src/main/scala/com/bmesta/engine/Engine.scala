@@ -17,6 +17,8 @@ object Engine extends App with RestInterface {
   val port = config.getInt("http.port")
 
   implicit val system = ActorSystem("Engine")
+
+
   implicit val materializer = ActorMaterializer()
   implicit val executionContext = system.dispatcher
   implicit val timeout = Timeout(10 seconds)
