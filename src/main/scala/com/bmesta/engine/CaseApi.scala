@@ -9,7 +9,7 @@ import akka.util.Timeout
 import com.bmesta.engine.events.CreateCase
 import com.bmesta.engine.model.Case
 import com.bmesta.engine.serializers.CasesJSonSupport
-import com.bmesta.engine.views.GetCase
+import com.bmesta.engine.views.{GetAllCases, GetCase}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
@@ -32,6 +32,9 @@ class CaseApi extends Directives with CasesJSonSupport {
             aCase
           }
         }
+      } ~
+      get{
+        complete((casesView?GetAllCases).mapTo[Map[String,Case]])
       }
     } ~
       path("case" / Segment) { name =>

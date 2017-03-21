@@ -1,6 +1,5 @@
 package com.bmesta.engine
 
-import scala.concurrent.duration._
 import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.pattern.ask
@@ -11,7 +10,8 @@ import com.bmesta.engine.model.Case
 import com.bmesta.engine.views.{CasesView, GetCase}
 import com.typesafe.config.ConfigFactory
 
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 /**
   * @author Baptiste Mesta.
@@ -36,16 +36,20 @@ object Engine extends App {
   val api = new CaseApi().casesRoutes(caseActor, caseView)
 
   Http().bindAndHandle(handler = api, interface = host, port = port) map { binding =>
-    println(s"REST interface bound to ${binding.localAddress}") } recover { case ex =>
+    println(s"REST interface bound to ${binding.localAddress}")
+  } recover { case ex =>
     println(s"REST interface could not bind to $host:$port", ex.getMessage)
   }
 
 
-  caseActor ! CreateCase(Case("myFirstCase","desc"))
+  caseActor ! CreateCase(Case("myFirstCase", "desc"))
+
+  caseView ! "start"
 
   (caseView ? GetCase("myFirstCase")).mapTo[Case].onComplete({
     case Success(aCase) => println(s"found $aCase")
     case Failure(_) => println("not found")
   })
+
 }
 
