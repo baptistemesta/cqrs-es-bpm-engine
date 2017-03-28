@@ -12,11 +12,9 @@ import com.bmesta.engine.model.Case
   * @author Baptiste Mesta.
   */
 class CasesView extends Actor with ActorLogging {
-  //  override def viewId: String = "case-view"
 
   implicit val materializer = ActorMaterializer()
 
-  private val cases = collection.mutable.Map[String, Case]()
 
   private def start() {
     val queries = PersistenceQuery(context.system).readJournalFor[LeveldbReadJournal](LeveldbReadJournal.Identifier)
@@ -25,8 +23,8 @@ class CasesView extends Actor with ActorLogging {
 
   override def receive: Receive = {
     case "start" => start(); log.info("started query")
-    case GetCase(name) => sender() ! cases.get(name); log.info(s"asked a case with name $name")
-    case GetAllCases => sender() !  log.info("ask all cases")
+    case GetCase(name) =>  log.info(s"asked a case with name $name")
+    case GetAllCases => log.info("ask all cases")
     case aCase: Case => log.info(s"view received $aCase")
   }
 }

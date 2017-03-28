@@ -41,15 +41,7 @@ object Engine extends App {
     println(s"REST interface could not bind to $host:$port", ex.getMessage)
   }
 
-
-  caseActor ! CreateCase(Case("myFirstCase", "desc"))
-
   caseView ! "start"
-
-  (caseView ? GetCase("myFirstCase")).mapTo[Case].onComplete({
-    case Success(aCase) => println(s"found $aCase")
-    case Failure(_) => println("not found")
-  })
 
 }
 

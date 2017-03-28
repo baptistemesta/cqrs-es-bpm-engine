@@ -33,9 +33,9 @@ class CaseApi extends Directives with CasesJSonSupport {
           }
         }
       } ~
-      get{
-        complete((casesView?GetAllCases).mapTo[Map[String,Case]])
-      }
+        get {
+          complete((casesView ? GetAllCases).mapTo[Map[String, Case]])
+        }
     } ~
       path("case" / Segment) { name =>
         get {
