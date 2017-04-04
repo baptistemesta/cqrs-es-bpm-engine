@@ -1,12 +1,11 @@
 package com.bmesta.engine.views
 
 import akka.actor.{Actor, ActorLogging}
-import akka.persistence.query.PersistenceQuery
-import akka.persistence.query.journal.leveldb.scaladsl.LeveldbReadJournal
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Sink
 import com.bmesta.engine.events.CaseCreated
 import com.bmesta.engine.model.Case
+
+import scala.collection.mutable
 
 /**
   * @author Baptiste Mesta.
@@ -14,18 +13,16 @@ import com.bmesta.engine.model.Case
 class CasesView extends Actor with ActorLogging {
 
   implicit val materializer = ActorMaterializer()
+  val cases: mutable.Map[String, Case] = collection.mutable.Map[String, Case]()
 
-
-  private def start() {
-    val queries = PersistenceQuery(context.system).readJournalFor[LeveldbReadJournal](LeveldbReadJournal.Identifier)
-    queries.eventsByPersistenceId("case-created", 0L, Long.MaxValue).map(e => e.event.asInstanceOf[CaseCreated].aCase).to(Sink.actorRef(this.self,{}))
-  }
+  override def preStart: Unit = context.system.eventStream.subscribe(self, classOf[CaseCreated])
 
   override def receive: Receive = {
-    case "start" => start(); log.info("started query")
-    case GetCase(name) =>  log.info(s"asked a case with name $name")
-    case GetAllCases => log.info("ask all cases")
-    case aCase: Case => log.info(s"view received $aCase")
+    case GetCase(name) => sender() ! cases.get(name)
+    case GetAllCases => sender() ! cases.toMap
+    case CaseCreated(aCase) =>
+      log.info(s"view received $aCase")
+      cases.put(aCase.name, aCase)
   }
 }
 
